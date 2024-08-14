@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <meta name="generator" content="" />
+    <title>APP</title>
+
+    <!-- Bootstrap core CSS -->
+    <link
+      href="{{ url_for('static', filename= 'assets/dist/css/bootstrap.min.css') }}"
+      rel="stylesheet"
+    />
+    <!-- Custom styles for this template -->
+    <link
+      href="{{ url_for('static', filename= 'navbar-top.css') }}"
+      rel="stylesheet"
+    />
+  </head>
+  <body id="yourParentElement">
+    <!-- Navbar-->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-3">
+      <div class="container-fluid justify-content-between">
+        <!-- Left elements -->
+        <div class="d-flex">
+          <!-- Brand -->
+          <a class="navbar-brand me-2 mb-1 d-flex align-items-center" href="/">
+            <span class="badge bg-secondary">Aplikasi SVM</span>
+          </a>
+
+          <!-- Search form -->
+        </div>
+        <!-- Left elements -->
+
+        <!-- Center elements -->
+        <ul class="navbar-nav flex-row d-none d-md-flex">
+          <li class="nav-item me-3 me-lg-1">
+            <a class="nav-link" href="/">
+              <button
+                type="button"
+                class="btn btn-primary active"
+                role="button"
+              >
+                Home
+              </button>
+            </a>
+          </li>
+          <li class="nav-item me-3 me-lg-1">
+            <a class="nav-link" href="/ekstraksi">
+              <button type="button" class="btn btn-primary" role="button">
+                Ekstraksi Citra
+              </button>
+            </a>
+          </li>
+          <li class="nav-item me-3 me-lg-1">
+            <a class="nav-link disabled" href="/model">
+              <button
+                type="button"
+                disabled
+                class="btn btn-primary"
+                role="button"
+              >
+                Learning SVM
+              </button>
+            </a>
+          </li>
+          <li class="nav-item me-3 me-lg-1">
+            <a class="nav-link disabled" href="/clasifikasi">
+              <button
+                type="button"
+                disabled
+                class="btn btn-primary"
+                role="button"
+              >
+                Testing SVM
+              </button>
+            </a>
+          </li>
+          <li class="nav-item me-3 me-lg-1">
+            <a class="nav-link" href="/dataModel">
+              <button type="button" class="btn btn-primary" role="button">
+                Data Model
+              </button>
+            </a>
+          </li>
+        </ul>
+        <!-- Center elements -->
+
+        <!-- Right elements -->
+        <ul class="navbar-nav flex-row"></ul>
+        <!-- Right elements -->
+      </div>
+    </nav>
+    <!-- Navbar -->
+
+    <main class="container">
+      <div class="alert alert-primary" role="alert">
+        <h3 class="text-center">Data File Gambar</h3>
+      </div>
+
+      <div class="bg-light p-4 rounded overflow-auto" style="max-height: 400px">
+        <div class="container">
+          <div class="row row-cols-1 row-cols-sm-2 row-cols-md-5">
+            {% for image in data %}
+
+            <div class="col border">
+              <div class="text-center pt-3">
+                <figure class="figure position-relative">
+                  <figcaption class="figure-caption pb-2">
+                    {{image['image_name']}}
+                  </figcaption>
+                  <img
+                    src="{{ url_for('static', filename= image['dir']) }}"
+                    class="rounded"
+                    alt="..."
+                    height="150"
+                    width="150"
+                  />
+                  <div class="row justify-content-md-center">
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-danger mt-2 col-sm-auto delete"
+                      value="{{image['id']}}"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </figure>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      <div class="mt-4 mb-5">
+        <div class="container">
+          <form
+            action=""
+            method="post"
+            enctype="multipart/form-data"
+            id="formUploadFiles"
+          >
+            <div class="row">
+              <div class="col align-self-start"></div>
+              <div class="col align-self-center">
+                <label for="formFileMultiple" class="form-label"
+                  >Upload all your file</label
+                >
+                <input class="form-control" type="file" name="file" multiple />
+              </div>
+              <div class="col align-self-end">
+                <button
+                  type="submit"
+                  class="btn btn-primary"
+                  id="uploadfiles"
+                  role="button"
+                >
+                  Submit
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+
+    <script src="{{ url_for('static', filename= 'assets/dist/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename= 'datatables/datatables.min.js') }}"></script>
+    <script src="{{ url_for('static', filename= 'assets/dist/js/jquery.blockUI.js') }}"></script>
+  </body>
+</html>
+<script>
+  $(document).ready(function () {
+    $(document).on("submit", "#formUploadFiles", function (e) {
+      $.blockUI({ message: "Loading..." });
+      e.preventDefault();
+      $.ajax({
+        url: "/uploadFiles",
+        method: "POST",
+        data: new FormData(this),
+        dataType: "json",
+        contentType: false,
+        processData: false,
+        success: function (data) {
+          if (data.data == "00") {
+            alert("sukses");
+          }
+          $.unblockUI();
+          window.location.href = "/home";
+        },
+        error: function (XMLHttpRequest, textStatus, errorThrown) {
+          alert("failed");
+          window.location.href = "/";
+        },
+      });
+    });
+
+    $(".delete").click(function () {
+      let id = $(this).val();
+      if (confirm("Are you Sure Delete This File ?") == true) {
+        $.ajax({
+          url: "/deleteFiles",
+          method: "POST",
+          data: { id: id },
+          dataType: "json",
+          success: function (data) {
+            if (data.data == "00") {
+              alert("sukses");
+            }
+            window.location.href = "/home";
+          },
+          error: function (XMLHttpRequest, textStatus, errorThrown) {
+            alert("failed");
+            window.location.href = "/";
+          },
+        });
+      }
+    });
+  });
+</script>

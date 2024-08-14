@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <meta name="generator" content="" />
+    <title>APP</title>
+
+    <!-- Bootstrap core CSS -->
+    <link
+      href="{{ url_for('static', filename= 'assets/dist/css/bootstrap.min.css') }}"
+      rel="stylesheet"
+    />
+    <!-- Custom styles for this template -->
+    <link
+      href="{{ url_for('static', filename= 'navbar-top.css') }}"
+      rel="stylesheet"
+    />
+    <link
+      href="{{ url_for('static', filename= 'datatables/datatables.min.css') }}"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- Navbar-->
+    <nav class="navbar fixed-top navbar-expand-lg navbar-light bg-light mb-3">
+      <div class="container-fluid justify-content-between">
+        <!-- Left elements -->
+        <div class="d-flex">
+          <!-- Brand -->
+          <a class="navbar-brand me-2 mb-1 d-flex align-items-center" href="/">
+            <span class="badge bg-secondary">Aplikasi SVM</span>
+          </a>
+
+          <!-- Search form -->
+        </div>
+        <!-- Left elements -->
+
+        <!-- Center elements -->
+        <ul class="navbar-nav flex-row d-none d-md-flex">
+          <li class="nav-item me-3 me-lg-1">
+            <a class="nav-link" href="/home">
+              <button type="button" class="btn btn-primary" role="button">
+                Home
+              </button>
+            </a>
+          </li>
+          <li class="nav-item me-3 me-lg-1">
+            <a class="nav-link" id="navEkstraksi" href="/ekstraksi">
+              <button
+                type="button"
+                class="btn btn-primary navEkstraksi"
+                role="button"
+              >
+                Ekstraksi Citra
+              </button>
+            </a>
+          </li>
+          <li class="nav-item me-3 me-lg-1">
+            <a class="nav-link" id="navModel" href="/model">
+              <button
+                type="button"
+                class="btn btn-primary navModel"
+                role="button"
+              >
+                Learning Data
+              </button>
+            </a>
+          </li>
+          <li class="nav-item me-3 me-lg-1">
+            <a class="nav-link" id="navClasifikasi" href="/clasifikasi">
+              <button
+                type="button"
+                class="btn btn-primary active navClasifikasi"
+                role="button"
+              >
+                Testing SVM
+              </button>
+            </a>
+          </li>
+          <li class="nav-item me-3 me-lg-1">
+            <a class="nav-link" href="/dataModel">
+              <button type="button" class="btn btn-primary" role="button">
+                Data Model
+              </button>
+            </a>
+          </li>
+        </ul>
+        <!-- Center elements -->
+
+        <!-- Right elements -->
+        <ul class="navbar-nav flex-row"></ul>
+        <!-- Right elements -->
+      </div>
+    </nav>
+    <!-- Navbar -->
+
+    <main class="container">
+      <div class="row gx-4 gy-5 mb-5 mt-5">
+        <div class="col-sm-8">
+          <div class="row">
+            <div class="alert alert-info mb-0" role="alert">
+              Tabel Data Testing
+            </div>
+            <div
+              class="bg-light p-4 rounded overflow-auto"
+              style="height: 400px"
+            >
+              <table
+                id="tbl_test_data"
+                class="table table-sm table-striped"
+                style="width: 100%"
+              ></table>
+            </div>
+          </div>
+          <div class="row" id="buttonTestingSVM">
+            <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
+              <button id="testingSVM" type="button" class="btn btn-primary">
+                Testing SVM
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-4" style="display: none" id="divTestingInfo">
+          <div class="row gx-4 gy-4">
+            <div class="col-sm-12 mb-4">
+              <div class="alert alert-info mb-0" role="alert">
+                Hasil Testing
+              </div>
+              <div
+                class="bg-light p-4 rounded overflow-auto"
+                style="height: 400px"
+                id="resultTesting"
+              ></div>
+            </div>
+          </div>
+          <div class="row" id="buttonSave">
+            <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-2">
+              <button id="Save" type="button" class="btn btn-success">
+                Save Database
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row gx-4 gy-5 mb-5" id="heatmap" style="display: none">
+        <div class="col-sm-12">
+          <div class="row">
+            <div class="alert alert-info mb-0" role="alert">
+              Heatmap Matrixs
+            </div>
+            <div class="bg-light p-4 rounded overflow-auto">
+              <div class="col border">
+                <div class="text-center pt-3">
+                  <figure class="figure position-relative">
+                    <img
+                      src="{{ url_for('static', filename= 'headmap/images/headmap_image.png' ) }}"
+                      class="rounded"
+                      alt="..."
+                    />
+                  </figure>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="{{ url_for('static', filename= 'assets/dist/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename= 'datatables/datatables.min.js') }}"></script>
+    <script src="{{ url_for('static', filename= 'assets/dist/js/jquery.blockUI.js') }}"></script>
+  </body>
+</html>
+<script>
+  $(document).ready(function () {
+    let tbltestData = $("#tbl_test_data").DataTable({
+      lengthMenu: [
+        [10, 25, 50, -1],
+        [10, 25, 50, "All"],
+      ],
+      bDestroy: true,
+      ajax: {
+        url: "/modelTestingData",
+        type: "POST",
+        cache: false,
+        dataSrc: "",
+      },
+      columns: [
+        {
+          title: "No.",
+          width: "1%",
+          data: "no",
+          className: "text-center align-middle",
+          orderable: false,
+          render: function (data, type, row, meta) {
+            return meta.row + meta.settings._iDisplayStart + 1;
+          },
+        },
+        {
+          title: "Label",
+          width: "20%",
+          data: "Label",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Mean-Hue",
+          width: "20%",
+          data: "mean_hue",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Std-Hue",
+          width: "20%",
+          data: "std_hue",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Skew-Hue",
+          width: "20%",
+          data: "skew_hue",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Mean-Satur",
+          width: "20%",
+          data: "mean_satur",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Std-Satur",
+          width: "20%",
+          data: "std_satur",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Skew-Satur",
+          width: "20%",
+          data: "skew_satur",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Mean_Value",
+          width: "20%",
+          data: "mean_value",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Std-Value",
+          width: "20%",
+          data: "std_value",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Skew-Value",
+          width: "20%",
+          data: "skew_value",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Correlation 0",
+          width: "20%",
+          data: "correlation 0",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Correlation 45",
+          width: "20%",
+          data: "correlation 45",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Correlation 90",
+          width: "20%",
+          data: "correlation 90",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Correlation 135",
+          width: "20%",
+          data: "correlation 135",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Homogeneity 0",
+          width: "20%",
+          data: "homogeneity 0",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Homogeneity 45",
+          width: "20%",
+          data: "homogeneity 45",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Homogeneity 90",
+          width: "20%",
+          data: "homogeneity 90",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Homogeneity 135",
+          width: "20%",
+          data: "homogeneity 135",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Dissimilarity 0",
+          width: "20%",
+          data: "dissimilarity 0",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Dissimilarity 45",
+          width: "20%",
+          data: "dissimilarity 45",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Dissimilarity 90",
+          width: "20%",
+          data: "dissimilarity 90",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Dissimilarity 135",
+          width: "20%",
+          data: "dissimilarity 135",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Contrast 0",
+          width: "20%",
+          data: "contrast 0",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Contrast 45",
+          width: "20%",
+          data: "contrast 45",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Contrast 90",
+          width: "20%",
+          data: "contrast 90",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Contrast 135",
+          width: "20%",
+          data: "contrast 135",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Energy 0",
+          width: "20%",
+          data: "energy 0",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Energy 45",
+          width: "20%",
+          data: "energy 45",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Energy 90",
+          width: "20%",
+          data: "energy 90",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Energy 135",
+          width: "20%",
+          data: "energy 135",
+          className: "text-center align-middle",
+        },
+        {
+          title: "ASM 0",
+          width: "20%",
+          data: "ASM 0",
+          className: "text-center align-middle",
+        },
+        {
+          title: "ASM 45",
+          width: "20%",
+          data: "ASM 45",
+          className: "text-center align-middle",
+        },
+        {
+          title: "ASM 90",
+          width: "20%",
+          data: "ASM 90",
+          className: "text-center align-middle",
+        },
+        {
+          title: "ASM 135",
+          width: "20%",
+          data: "ASM 135",
+          className: "text-center align-middle",
+        },
+      ],
+      // initComplete: function (settings, json) {
+      //   $("#divEkstraksiNormal").show(500);
+      // },
+    });
+
+    $("#testingSVM").click(function () {
+      $("#buttonTestingSVM").hide();
+      $.ajax("/clasifikasiTesting", {
+        type: "POST", // http method
+        data: { Data: "" }, // data to submit
+        success: function (data, status, xhr) {
+          $("#divTestingInfo").show(500);
+          $("#heatmap").show(500);
+
+          $("#resultTesting").append(
+            '<div class="card" style="width: 18rem;"><div class="card-header">Info Testing</div><ul class="list-group list-group-flush"><li class="list-group-item">Accuracy : ' +
+              data.acc +
+              '<input type="text" id="acc" value="' +
+              data.acc +
+              '" hidden>' +
+              '</li><li class="list-group-item">Precision : ' +
+              data.prec +
+              '<input type="text" id="prec" value="' +
+              data.prec +
+              '" hidden>' +
+              '</li><li class="list-group-item">Recall : ' +
+              data.rcal +
+              '<input type="text" id="rcal" value="' +
+              data.rcal +
+              '" hidden>' +
+              '</li><li class="list-group-item">Iteration : ' +
+              data.iteration +
+              '<input type="text" id="iter" value="' +
+              data.iteration +
+              '" hidden>' +
+              '</li><li class="list-group-item">Kernel : ' +
+              data.kernel +
+              '<input type="text" id="kernel" value="' +
+              data.kernel +
+              '" hidden>' +
+              '</li><li class="list-group-item">b : ' +
+              data.b +
+              '<input type="text" id="b" value="' +
+              data.b +
+              '" hidden>' +
+              '</li><li class="list-group-item">C : ' +
+              data.c +
+              '<input type="text" id="c" value="' +
+              data.c +
+              '" hidden>' +
+              "</li></ul></div>"
+          );
+        },
+        error: function (jqXhr, textStatus, errorMessage) {
+          alert("System Error !!!");
+        },
+      });
+      // let ratio = $("#dataSplit").val();
+      // funcTblSplitLearning(ratio);
+    });
+
+    $("#Save").click(function () {
+      $("#buttonSave").hide();
+      let acc = $("#acc").val();
+      let prec = $("#prec").val();
+      let rcal = $("#rcal").val();
+      $.ajax("/saveAll", {
+        type: "POST", // http method
+        data: { acc: acc, prec: prec, rcal: rcal }, // data to submit
+        success: function (data, status, xhr) {
+          alert("Data Berhasil Disimpan !");
+          $(".navEkstraksi").prop("disabled", true);
+          $("#navEkstraksi").addClass("disabled");
+          $(".navModel").prop("disabled", true);
+          $("#navModel").addClass("disabled");
+          $(".navClasifikasi").prop("disabled", true);
+          $("#navClasifikasi").addClass("disabled");
+        },
+        error: function (jqXhr, textStatus, errorMessage) {
+          alert("System Error !!!");
+        },
+      });
+    });
+  });
+</script>

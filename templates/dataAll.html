@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <meta name="generator" content="" />
+    <title>APP</title>
+
+    <!-- Bootstrap core CSS -->
+    <link
+      href="{{ url_for('static', filename= 'assets/dist/css/bootstrap.min.css') }}"
+      rel="stylesheet"
+    />
+    <!-- Custom styles for this template -->
+    <link
+      href="{{ url_for('static', filename= 'navbar-top.css') }}"
+      rel="stylesheet"
+    />
+    <link
+      href="{{ url_for('static', filename= 'datatables/datatables.min.css') }}"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- Navbar-->
+    <nav class="navbar fixed-top navbar-expand-lg navbar-light bg-light mb-3">
+      <div class="container-fluid justify-content-between">
+        <!-- Left elements -->
+        <div class="d-flex">
+          <!-- Brand -->
+          <a class="navbar-brand me-2 mb-1 d-flex align-items-center" href="/">
+            <span class="badge bg-secondary">Aplikasi SVM</span>
+          </a>
+
+          <!-- Search form -->
+        </div>
+        <!-- Left elements -->
+
+        <!-- Center elements -->
+        <ul class="navbar-nav flex-row d-none d-md-flex">
+          <li class="nav-item me-3 me-lg-1">
+            <a class="nav-link" href="/home">
+              <button type="button" class="btn btn-primary" role="button">
+                Home
+              </button>
+            </a>
+          </li>
+          <li class="nav-item me-3 me-lg-1">
+            <a class="nav-link disabled" href="/ekstraksi">
+              <button
+                type="button"
+                disabled
+                class="btn btn-primary"
+                role="button"
+              >
+                Ekstraksi Citra
+              </button>
+            </a>
+          </li>
+          <li class="nav-item me-3 me-lg-1">
+            <a class="nav-link disabled" href="/model">
+              <button
+                type="button"
+                disabled
+                class="btn btn-primary"
+                role="button"
+              >
+                Learning Data
+              </button>
+            </a>
+          </li>
+          <li class="nav-item me-3 me-lg-1">
+            <a class="nav-link disabled" href="/clasifikasi">
+              <button
+                type="button"
+                disabled
+                class="btn btn-primary"
+                role="button"
+              >
+                Testing SVM
+              </button>
+            </a>
+          </li>
+          <li class="nav-item me-3 me-lg-1">
+            <a class="nav-link" href="/dataModel">
+              <button
+                type="button"
+                class="btn btn-primary active"
+                role="button"
+              >
+                Data Model
+              </button>
+            </a>
+          </li>
+        </ul>
+        <!-- Center elements -->
+
+        <!-- Right elements -->
+        <ul class="navbar-nav flex-row"></ul>
+        <!-- Right elements -->
+      </div>
+    </nav>
+    <!-- Navbar -->
+
+    <main class="container">
+      <div class="row gx-4 gy-5 mb-5 mt-5">
+        <div class="col-sm-12">
+          <div class="row">
+            <div class="alert alert-info mb-0" role="alert">
+              Tabel Model Predict
+            </div>
+            <div
+              class="bg-light p-4 rounded overflow-auto"
+              style="height: 600px"
+            >
+              <table
+                id="tbl_test_data"
+                class="table table-sm table-striped"
+                style="width: 100%"
+              ></table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="{{ url_for('static', filename= 'assets/dist/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename= 'datatables/datatables.min.js') }}"></script>
+    <script src="{{ url_for('static', filename= 'assets/dist/js/jquery.blockUI.js') }}"></script>
+  </body>
+</html>
+<script>
+  $(document).ready(function () {
+    let tbltestData = $("#tbl_test_data").DataTable({
+      lengthMenu: [
+        [10, 25, 50, -1],
+        [10, 25, 50, "All"],
+      ],
+      bDestroy: true,
+      ajax: {
+        url: "/dataModelPredict",
+        type: "POST",
+        cache: false,
+      },
+      columns: [
+        {
+          title: "No.",
+          width: "1%",
+          data: "no",
+          className: "text-center align-middle",
+          orderable: false,
+          render: function (data, type, row, meta) {
+            return meta.row + meta.settings._iDisplayStart + 1;
+          },
+        },
+        {
+          title: "Name",
+          width: "20%",
+          data: "NAME",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Jumlah Data",
+          width: "5%",
+          data: "JML_DATA",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Jml. Data Training",
+          width: "5%",
+          data: "JML_DATA_TRAIN",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Jml. Data Testing",
+          width: "5%",
+          data: "JML_DATA_TEST",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Accuracy",
+          width: "20%",
+          data: "ACC",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Precission",
+          width: "20%",
+          data: "PREC",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Recall",
+          width: "20%",
+          data: "RCALL",
+          className: "text-center align-middle",
+        },
+      ],
+      initComplete: function (settings, json) {},
+    });
+  });
+</script>

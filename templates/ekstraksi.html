@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <meta name="generator" content="" />
+    <title>APP</title>
+
+    <!-- Bootstrap core CSS -->
+    <link
+      href="{{ url_for('static', filename= 'assets/dist/css/bootstrap.min.css') }}"
+      rel="stylesheet"
+    />
+    <!-- Custom styles for this template -->
+    <link
+      href="{{ url_for('static', filename= 'navbar-top.css') }}"
+      rel="stylesheet"
+    />
+    <link
+      href="{{ url_for('static', filename= 'datatables/datatables.min.css') }}"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- Navbar-->
+    <nav class="navbar fixed-top navbar-expand-lg navbar-light bg-light">
+      <div class="container-fluid justify-content-between">
+        <!-- Left elements -->
+        <div class="d-flex">
+          <!-- Brand -->
+          <a class="navbar-brand me-2 mb-1 d-flex align-items-center" href="/">
+            <span class="badge bg-secondary">Aplikasi SVM</span>
+          </a>
+
+          <!-- Search form -->
+        </div>
+        <!-- Left elements -->
+
+        <!-- Center elements -->
+        <ul class="navbar-nav flex-row d-none d-md-flex">
+          <li class="nav-item me-3 me-lg-1">
+            <a class="nav-link" href="/home">
+              <button type="button" class="btn btn-primary" role="button">
+                Home
+              </button>
+            </a>
+          </li>
+          <li class="nav-item me-3 me-lg-1">
+            <a class="nav-link" href="/ekstraksi">
+              <button
+                type="button"
+                class="btn btn-primary active"
+                role="button"
+              >
+                Ekstraksi Citra
+              </button>
+            </a>
+          </li>
+          <li class="nav-item me-3 me-lg-1">
+            <a class="nav-link disabled" id="navModel" href="/model">
+              <button
+                type="button"
+                disabled
+                class="btn btn-primary navModel"
+                role="button"
+              >
+                Learning SVM
+              </button>
+            </a>
+          </li>
+          <li class="nav-item me-3 me-lg-1">
+            <a class="nav-link disabled" href="/clasifikasi">
+              <button
+                type="button"
+                disabled
+                class="btn btn-primary"
+                role="button"
+              >
+                Testing SVM
+              </button>
+            </a>
+          </li>
+          <li class="nav-item me-3 me-lg-1">
+            <a class="nav-link" href="/dataModel">
+              <button type="button" class="btn btn-primary" role="button">
+                Data Model
+              </button>
+            </a>
+          </li>
+        </ul>
+        <!-- Center elements -->
+
+        <!-- Right elements -->
+        <ul class="navbar-nav flex-row"></ul>
+        <!-- Right elements -->
+      </div>
+    </nav>
+    <!-- Navbar -->
+
+    <main class="container">
+      <div class="row gx-4 gy-5 mt-5">
+        <div class="col-sm-12">
+          <div class="alert alert-info mb-0" role="alert">
+            Tabel Data Gambar
+          </div>
+          <div class="bg-light p-4 rounded overflow-auto" style="height: 400px">
+            <table
+              id="tbl_gambar"
+              class="table table-sm table-striped"
+              style="width: 100%"
+            ></table>
+          </div>
+        </div>
+      </div>
+      <div class="row gx-4 gy-4" id="btnEkstraksi">
+        <div class="col-sm-12">
+          <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-3">
+            <button id="ekstraksi" type="button" class="btn btn-primary">
+              Ekstraksi Ciri (HSV & GLCM)
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="row gx-4 gy-4 mt-3" style="display: none" id="divEkstraksi">
+        <div class="col-sm-12">
+          <div class="alert alert-info mb-0" role="alert">
+            Table Hasil Ekstraksi Ciri Gambar
+          </div>
+          <div class="bg-light p-4 rounded overflow-auto" style="height: 400px">
+            <table
+              id="tbl_ekstrak_ciri_gambar"
+              class="table table-sm table-bordered"
+              style="width: 100%"
+            ></table>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="row gx-4 gy-4 mt-3 mb-5"
+        style="display: none"
+        id="divEkstraksiNormal"
+      >
+        <div class="col-sm-12">
+          <div class="alert alert-info mb-0" role="alert">
+            Table Ekstraksi Normalisasi
+          </div>
+          <div class="bg-light p-4 rounded overflow-auto" style="height: 400px">
+            <table
+              id="tbl_ekstrak_normalisasi"
+              class="table table-sm table-bordered"
+              style="width: 100%"
+            ></table>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="{{ url_for('static', filename= 'assets/dist/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename= 'datatables/datatables.min.js') }}"></script>
+    <script src="{{ url_for('static', filename= 'assets/dist/js/jquery.blockUI.js') }}"></script>
+  </body>
+</html>
+
+<script>
+  $(document).ready(function () {
+    $(".navModel").prop("disabled", true);
+
+    let tblGambar = $("#tbl_gambar").DataTable({
+      lengthMenu: [
+        [10, 25, 50, -1],
+        [10, 25, 50, "All"],
+      ],
+      bDestroy: true,
+      ajax: {
+        url: "/ekstraksiTblGambar",
+        type: "POST",
+        cache: false,
+      },
+      columns: [
+        {
+          title: "Nomor",
+          width: "1%",
+          data: "no",
+          className: "text-center align-middle",
+          orderable: false,
+          render: function (data, type, row, meta) {
+            return meta.row + meta.settings._iDisplayStart + 1;
+          },
+        },
+        {
+          title: "Image Name",
+          width: "20%",
+          data: "image_name",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Extension",
+          width: "15%",
+          data: "ext",
+          className: "text-center align-middle",
+        },
+        {
+          title: "File Direktori",
+          width: "15%",
+          data: "dir",
+          className: "text-center align-middle",
+        },
+        {
+          title: "Image",
+          width: "20%",
+          data: "dir",
+          className: "text-center align-middle",
+          render: function (data, type, full, meta) {
+            return '<img src="static/' + data + '" height="50"/>';
+          },
+        },
+      ],
+    });
+
+    $("#ekstraksi").click(function () {
+      $.blockUI({ message: "Loading..." });
+      $("#btnEkstraksi").hide();
+      funcTblEksGambar();
+    });
+
+    function funcTblEksGambar() {
+      let tblEksGambar = $("#tbl_ekstrak_ciri_gambar").DataTable({
+        lengthMenu: [
+          [10, 25, 50, -1],
+          [10, 25, 50, "All"],
+        ],
+        ajax: {
+          url: "/ekstraksiCitra",
+          type: "POST",
+          cache: false,
+          dataSrc: "",
+        },
+        columns: [
+          {
+            title: "No.",
+            width: "1%",
+            data: "no",
+            className: "text-center align-middle",
+            orderable: false,
+            render: function (data, type, row, meta) {
+              return meta.row + meta.settings._iDisplayStart + 1;
+            },
+          },
+          {
+            title: "Label",
+            width: "20%",
+            data: "Label",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Mean-Hue",
+            width: "20%",
+            data: "mean_hue",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Std-Hue",
+            width: "20%",
+            data: "std_hue",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Skew-Hue",
+            width: "20%",
+            data: "skew_hue",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Mean-Satur",
+            width: "20%",
+            data: "mean_satur",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Std-Satur",
+            width: "20%",
+            data: "std_satur",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Skew-Satur",
+            width: "20%",
+            data: "skew_satur",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Mean_Value",
+            width: "20%",
+            data: "mean_value",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Std-Value",
+            width: "20%",
+            data: "std_value",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Skew-Value",
+            width: "20%",
+            data: "skew_value",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Correlation 0",
+            width: "20%",
+            data: "correlation 0",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Correlation 45",
+            width: "20%",
+            data: "correlation 45",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Correlation 90",
+            width: "20%",
+            data: "correlation 90",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Correlation 135",
+            width: "20%",
+            data: "correlation 135",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Homogeneity 0",
+            width: "20%",
+            data: "homogeneity 0",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Homogeneity 45",
+            width: "20%",
+            data: "homogeneity 45",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Homogeneity 90",
+            width: "20%",
+            data: "homogeneity 90",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Homogeneity 135",
+            width: "20%",
+            data: "homogeneity 135",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Dissimilarity 0",
+            width: "20%",
+            data: "dissimilarity 0",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Dissimilarity 45",
+            width: "20%",
+            data: "dissimilarity 45",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Dissimilarity 90",
+            width: "20%",
+            data: "dissimilarity 90",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Dissimilarity 135",
+            width: "20%",
+            data: "dissimilarity 135",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Contrast 0",
+            width: "20%",
+            data: "contrast 0",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Contrast 45",
+            width: "20%",
+            data: "contrast 45",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Contrast 90",
+            width: "20%",
+            data: "contrast 90",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Contrast 135",
+            width: "20%",
+            data: "contrast 135",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Energy 0",
+            width: "20%",
+            data: "energy 0",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Energy 45",
+            width: "20%",
+            data: "energy 45",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Energy 90",
+            width: "20%",
+            data: "energy 90",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Energy 135",
+            width: "20%",
+            data: "energy 135",
+            className: "text-center align-middle",
+          },
+          {
+            title: "ASM 0",
+            width: "20%",
+            data: "ASM 0",
+            className: "text-center align-middle",
+          },
+          {
+            title: "ASM 45",
+            width: "20%",
+            data: "ASM 45",
+            className: "text-center align-middle",
+          },
+          {
+            title: "ASM 90",
+            width: "20%",
+            data: "ASM 90",
+            className: "text-center align-middle",
+          },
+          {
+            title: "ASM 135",
+            width: "20%",
+            data: "ASM 135",
+            className: "text-center align-middle",
+          },
+        ],
+        initComplete: function (settings, json) {
+          funcTblEksGambarNormal();
+          $.unblockUI();
+          $("#divEkstraksi").show(500);
+        },
+      });
+    }
+
+    function funcTblEksGambarNormal() {
+      let tblEksGambarNormal = $("#tbl_ekstrak_normalisasi").DataTable({
+        lengthMenu: [
+          [10, 25, 50, -1],
+          [10, 25, 50, "All"],
+        ],
+        ajax: {
+          url: "/ekstraksiCitraNormal",
+          type: "POST",
+          cache: false,
+          dataSrc: "",
+        },
+        columns: [
+          {
+            title: "No.",
+            width: "1%",
+            data: "no",
+            className: "text-center align-middle",
+            orderable: false,
+            render: function (data, type, row, meta) {
+              return meta.row + meta.settings._iDisplayStart + 1;
+            },
+          },
+          {
+            title: "Label",
+            width: "20%",
+            data: "Label",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Mean-Hue",
+            width: "20%",
+            data: "mean_hue",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Std-Hue",
+            width: "20%",
+            data: "std_hue",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Skew-Hue",
+            width: "20%",
+            data: "skew_hue",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Mean-Satur",
+            width: "20%",
+            data: "mean_satur",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Std-Satur",
+            width: "20%",
+            data: "std_satur",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Skew-Satur",
+            width: "20%",
+            data: "skew_satur",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Mean_Value",
+            width: "20%",
+            data: "mean_value",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Std-Value",
+            width: "20%",
+            data: "std_value",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Skew-Value",
+            width: "20%",
+            data: "skew_value",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Correlation 0",
+            width: "20%",
+            data: "correlation 0",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Correlation 45",
+            width: "20%",
+            data: "correlation 45",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Correlation 90",
+            width: "20%",
+            data: "correlation 90",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Correlation 135",
+            width: "20%",
+            data: "correlation 135",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Homogeneity 0",
+            width: "20%",
+            data: "homogeneity 0",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Homogeneity 45",
+            width: "20%",
+            data: "homogeneity 45",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Homogeneity 90",
+            width: "20%",
+            data: "homogeneity 90",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Homogeneity 135",
+            width: "20%",
+            data: "homogeneity 135",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Dissimilarity 0",
+            width: "20%",
+            data: "dissimilarity 0",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Dissimilarity 45",
+            width: "20%",
+            data: "dissimilarity 45",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Dissimilarity 90",
+            width: "20%",
+            data: "dissimilarity 90",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Dissimilarity 135",
+            width: "20%",
+            data: "dissimilarity 135",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Contrast 0",
+            width: "20%",
+            data: "contrast 0",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Contrast 45",
+            width: "20%",
+            data: "contrast 45",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Contrast 90",
+            width: "20%",
+            data: "contrast 90",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Contrast 135",
+            width: "20%",
+            data: "contrast 135",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Energy 0",
+            width: "20%",
+            data: "energy 0",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Energy 45",
+            width: "20%",
+            data: "energy 45",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Energy 90",
+            width: "20%",
+            data: "energy 90",
+            className: "text-center align-middle",
+          },
+          {
+            title: "Energy 135",
+            width: "20%",
+            data: "energy 135",
+            className: "text-center align-middle",
+          },
+          {
+            title: "ASM 0",
+            width: "20%",
+            data: "ASM 0",
+            className: "text-center align-middle",
+          },
+          {
+            title: "ASM 45",
+            width: "20%",
+            data: "ASM 45",
+            className: "text-center align-middle",
+          },
+          {
+            title: "ASM 90",
+            width: "20%",
+            data: "ASM 90",
+            className: "text-center align-middle",
+          },
+          {
+            title: "ASM 135",
+            width: "20%",
+            data: "ASM 135",
+            className: "text-center align-middle",
+          },
+        ],
+        initComplete: function (settings, json) {
+          $("#divEkstraksiNormal").show(500);
+          $(".navModel").prop("disabled", false);
+          $("#navModel").removeClass("disabled");
+        },
+      });
+    }
+  });
+</script>
